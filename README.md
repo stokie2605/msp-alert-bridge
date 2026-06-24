@@ -6,6 +6,38 @@ MSP Alert Bridge is a lightweight TypeScript service that receives infrastructur
 
 It is designed for Managed Service Provider-style environments where alert sources can be noisy, inconsistent, or fragmented across different monitoring systems.
 
+### API Validation & Logs
+
+Health check response:
+
+```json
+{
+  "status": "ok",
+  "service": "msp-alert-bridge",
+  "dryRun": true
+}
+```
+
+Dry-run normalized alert log:
+
+```json
+{
+  "source": "uptime-monitor",
+  "severity": "high",
+  "title": "Primary router unreachable",
+  "message": "Gateway failed three consecutive health checks.",
+  "host": "edge-router-01",
+  "service": "network",
+  "receivedAt": "2026-06-24T08:18:07.720Z",
+  "originalTimestamp": "2026-06-24T08:59:50.000Z",
+  "metadata": {
+    "site": "client-a",
+    "checkCount": 3,
+    "ticketPriority": "P1"
+  }
+}
+```
+
 ## The Business Problem
 
 MSPs and internal IT teams often receive alerts from multiple systems: uptime monitors, endpoint tools, backup platforms, firewalls, ticketing systems, and cloud services. Each platform tends to format payloads differently, which creates friction when teams need to route alerts into a central workflow.
