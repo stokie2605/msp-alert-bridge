@@ -1,25 +1,26 @@
 {
-  "name": "msp-alert-bridge",
-  "version": "1.0.0",
-  "description": "A lightweight MSP alert bridge for receiving, normalizing, and forwarding operational alert payloads.",
-  "main": "dist/bridge.js",
-  "scripts": {
-    "build": "tsc",
-    "start": "node dist/bridge.js",
-    "dev": "tsc --watch"
-  },
-  "keywords": [
-    "msp",
-    "alerts",
-    "webhook",
-    "typescript",
-    "infrastructure"
-  ],
-  "author": "Dean Wilshaw",
-  "license": "ISC",
-  "type": "commonjs",
-  "devDependencies": {
-    "@types/node": "^26.0.0",
-    "typescript": "^6.0.3"
-  }
+    "name":  "msp-alert-bridge",
+    "version":  "1.0.0",
+    "description":  "A lightweight MSP alert bridge for receiving, normalizing, and forwarding operational alert payloads.",
+    "main":  "dist/bridge.js",
+    "scripts":  {
+                    "build":  "tsc",
+                    "start":  "node dist/bridge.js",
+                    "dev":  "tsc --watch",
+                    "test":  "npm run build \u0026\u0026 node --test tests/*.test.cjs"
+                },
+    "keywords":  [
+                     "msp",
+                     "alerts",
+                     "webhook",
+                     "typescript",
+                     "infrastructure"
+                 ],
+    "author":  "Dean Wilshaw",
+    "license":  "ISC",
+    "type":  "commonjs",
+    "devDependencies":  {
+                            "@types/node":  "^26.0.0",
+                            "typescript":  "^6.0.3"
+                        }
 }

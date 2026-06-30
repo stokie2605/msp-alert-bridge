@@ -1,29 +1,5 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
-
-type AlertSeverity = "critical" | "high" | "medium" | "low" | "info";
-
-interface RawAlertPayload {
-  source?: unknown;
-  severity?: unknown;
-  title?: unknown;
-  message?: unknown;
-  host?: unknown;
-  service?: unknown;
-  timestamp?: unknown;
-  metadata?: unknown;
-}
-
-interface ForwardedAlertPayload {
-  source: string;
-  severity: AlertSeverity;
-  title: string;
-  message: string;
-  host: string;
-  service: string;
-  receivedAt: string;
-  originalTimestamp: string | null;
-  metadata: Record<string, unknown>;
-}
+import { isAuthorizedBridgeToken, normalizeAlert, type ForwardedAlertPayload, type RawAlertPayload } from "./alertLogic";
 
 interface BridgeConfig {
   port: number;
@@ -35,7 +11,6 @@ interface BridgeConfig {
 
 const DEFAULT_PORT = 8787;
 const DEFAULT_MAX_PAYLOAD_BYTES = 1024 * 256;
-const VALID_SEVERITIES: AlertSeverity[] = ["critical", "high", "medium", "low", "info"];
 
 function readConfig(): BridgeConfig {
   const port = Number.parseInt(process.env.BRIDGE_PORT ?? "", 10);
@@ -88,43 +63,6 @@ function parseJsonBody(body: string): RawAlertPayload {
   return parsed as RawAlertPayload;
 }
 
-function stringValue(value: unknown, fallback: string): string {
-  return typeof value === "string" && value.trim() ? value.trim() : fallback;
-}
-
-function normalizeSeverity(value: unknown): AlertSeverity {
-  if (typeof value !== "string") {
-    return "info";
-  }
-
-  const normalized = value.trim().toLowerCase();
-  return VALID_SEVERITIES.includes(normalized as AlertSeverity)
-    ? (normalized as AlertSeverity)
-    : "info";
-}
-
-function normalizeMetadata(value: unknown): Record<string, unknown> {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return {};
-  }
-
-  return value as Record<string, unknown>;
-}
-
-function normalizeAlert(payload: RawAlertPayload): ForwardedAlertPayload {
-  return {
-    source: stringValue(payload.source, "unknown-monitor"),
-    severity: normalizeSeverity(payload.severity),
-    title: stringValue(payload.title, "Untitled infrastructure alert"),
-    message: stringValue(payload.message, "No alert message supplied."),
-    host: stringValue(payload.host, "unknown-host"),
-    service: stringValue(payload.service, "unknown-service"),
-    receivedAt: new Date().toISOString(),
-    originalTimestamp: typeof payload.timestamp === "string" ? payload.timestamp : null,
-    metadata: normalizeMetadata(payload.metadata),
-  };
-}
-
 function assertAuthorized(request: IncomingMessage, sharedSecret: string | null): void {
   if (!sharedSecret) {
     return;
@@ -132,7 +70,7 @@ function assertAuthorized(request: IncomingMessage, sharedSecret: string | null)
 
   const suppliedSecret = request.headers["x-bridge-token"];
 
-  if (suppliedSecret !== sharedSecret) {
+  if (!isAuthorizedBridgeToken(suppliedSecret, sharedSecret)) {
     throw new Error("Unauthorized alert submission.");
   }
 }

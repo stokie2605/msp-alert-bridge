@@ -106,6 +106,21 @@ Dry-Run Console Output OR Target Webhook Forwarding
 - Environment-variable configuration
 - No runtime npm dependencies
 
+## ✅ Automated Testing
+
+The project includes unit tests to verify alert ingestion logic:
+- **Payload Normalization:** Asserts that input parameters map to the correct properties and fields.
+- **Default Fields:** Confirms that fallback values are set when non-required properties are omitted.
+- **Severity Mapping:** Validates that incoming severity labels are correctly parsed and mapped to standard severities.
+- **Shared Secret Verification:** Asserts that webhook token header validations prevent unauthorized alerts.
+
+To run the test suite locally:
+```bash
+npm run test
+```
+
+The GitHub Actions CI pipeline runs these tests automatically on every push.
+
 ## Local Execution Setup
 
 ### Install Dependencies

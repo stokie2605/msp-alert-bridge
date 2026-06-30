@@ -18,5 +18,5 @@
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true
   },
-  "include": ["bridge.ts"]
+  "include": ["bridge.ts", "alertLogic.ts"]
 }
