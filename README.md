@@ -219,6 +219,7 @@ bridge.ts          # Alert intake, normalization, and forwarding service
 package.json       # Node scripts and TypeScript dependencies
 tsconfig.json      # TypeScript compiler configuration
 README.md          # Project documentation
+tests/bridge.test.cjs # Webhook timeout and forwarding guard tests
 ```
 
 ## Production Readiness Notes
@@ -226,6 +227,7 @@ README.md          # Project documentation
 - Place the service behind HTTPS before accepting real alerts.
 - Store secrets in a proper secret manager or deployment environment.
 - Add structured logging for SIEM or ticketing integration.
+- Outbound webhook forwarding is protected with a strict 5-second `AbortController` timeout so a hung destination cannot indefinitely hold request processing.
 - Add retry/backoff handling for failed downstream webhooks.
 - Add schema validation if connecting to multiple production monitoring tools.
 - Add tests for payload normalization, shared-secret checks, and forwarding errors.

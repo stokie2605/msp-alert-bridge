@@ -11,6 +11,7 @@ interface BridgeConfig {
 
 const DEFAULT_PORT = 8787;
 const DEFAULT_MAX_PAYLOAD_BYTES = 1024 * 256;
+const DEFAULT_WEBHOOK_TIMEOUT_MS = 5000;
 
 function readConfig(): BridgeConfig {
   const port = Number.parseInt(process.env.BRIDGE_PORT ?? "", 10);
@@ -75,21 +76,35 @@ function assertAuthorized(request: IncomingMessage, sharedSecret: string | null)
   }
 }
 
-async function forwardAlert(alert: ForwardedAlertPayload, config: BridgeConfig): Promise<number> {
+export async function forwardAlert(alert: ForwardedAlertPayload, config: BridgeConfig): Promise<number> {
   if (config.dryRun || !config.targetWebhookUrl) {
     console.log("[DRY RUN] Normalized alert payload:");
     console.log(JSON.stringify(alert, null, 2));
     return 202;
   }
 
-  const response = await fetch(config.targetWebhookUrl, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "user-agent": "msp-alert-bridge/1.0",
-    },
-    body: JSON.stringify(alert),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), DEFAULT_WEBHOOK_TIMEOUT_MS);
+
+  let response: Response;
+  try {
+    response = await fetch(config.targetWebhookUrl, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "user-agent": "msp-alert-bridge/1.0",
+      },
+      body: JSON.stringify(alert),
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error(`Target webhook timed out after ${DEFAULT_WEBHOOK_TIMEOUT_MS}ms.`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!response.ok) {
     throw new Error(`Target webhook returned HTTP ${response.status}.`);
@@ -155,4 +170,6 @@ function startServer(config: BridgeConfig): void {
   });
 }
 
-startServer(readConfig());
+if (require.main === module) {
+  startServer(readConfig());
+}
