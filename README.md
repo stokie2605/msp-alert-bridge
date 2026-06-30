@@ -1,5 +1,7 @@
 # MSP Alert Bridge
 
+[![CI](https://github.com/stokie2605/msp-alert-bridge/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/stokie2605/msp-alert-bridge/actions/workflows/ci.yml)
+
 Built by Dean Wilshaw.
 
 MSP Alert Bridge is a lightweight TypeScript service that receives infrastructure alert payloads, normalizes them into a consistent operational format, and forwards them to a configured webhook destination.
